@@ -1,0 +1,14 @@
+#!/bin/sh
+
+headers="$(find . -name '*.h') \
+	$(find . -name '*.hpp')"
+files="$(find . -name '*.cpp') \
+	$(find . -name '*.cmake') \
+	$headers"
+
+c_symbols="$(grep -o "CVAPI(.*)\s*\(cv[0-9a-zA-Z_]*\)" $headers | cut -f 2 -d ')' | awk '{$1=$1};1')"
+matches="$(echo $c_symbols | sed 's/ /\\|/g' | sed 's/cv\(_sidefx\)\?//g')"
+sed -i "s/cv\(_sidefx\)\?\($matches\)/cv_sidefx\2/g" $files
+
+sed -i 's/\(namespace\s*\)cv\(\W\|$\)/\1cv_sidefx\2/g' $files
+sed -i 's/\(\W\|^\)cv::/\1cv_sidefx::/g' $files
